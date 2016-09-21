@@ -44,7 +44,7 @@ app.post("/nudge", (req, res) => {
     });
 
     const data = {
-      from: "hello@nudgeme.in",
+      from: `hello@${process.env.MAILGUN_DOMAIN}`,
       to: email,
       subject: "Nudge: " + text.substr(0, 80),
       text: text
