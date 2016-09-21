@@ -30,7 +30,7 @@ app.post("/nudge", (req, res) => {
   const meta = chrono.parse(req.body.when)[0];
   const text = req.body.when.substr(meta.index + meta.text.length + 1) || "Nudge!";
 
-  console.log("Parsed date", when);
+  console.log("Parsed date", when, meta);
   console.log("Nudge text", text);
 
   const delay = when.getTime() - Date.now();
