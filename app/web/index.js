@@ -10,14 +10,27 @@ app.use(bodyParser.json());
 app.post("/nudge", (req, res) => {
   console.log("Got nudge");
 
-  const when = chrono.parseDate(req.body.when);
-  const meta = chrono.parse(req.body.when)[0];
-
-  console.log("Parsed date", when, meta);
-
   const email = req.body.email;
-  const text = req.body.when.substr(meta.index + meta.text.length + 1);
+  const when = chrono.parseDate(req.body.when);
 
+  if (!when) {
+    return res.json({
+      success: false,
+      message: `Could not parse '${req.body.when}' as a date`
+    });
+  }
+
+  if (!email) {
+    return res.json({
+      success: false,
+      message: `No email address supplied`
+    });
+  }
+
+  const meta = chrono.parse(req.body.when)[0];
+  const text = req.body.when.substr(meta.index + meta.text.length + 1) || "Nudge!";
+
+  console.log("Parsed date", when);
   console.log("Nudge text", text);
 
   const delay = when.getTime() - Date.now();
@@ -38,7 +51,11 @@ app.post("/nudge", (req, res) => {
     };
 
     mailgun.messages().send(data, (err, body) => {
-      console.log(err, body);
+      if (err) {
+        console.log("Error queueing mail", err);
+      } else {
+        console.log("Mail queued ok", body.id);
+      }
     });
   }, delay);
 
@@ -47,6 +64,14 @@ app.post("/nudge", (req, res) => {
     now: meta.ref,
     in: delay,
     at: when
+  });
+});
+
+app.use((err, req, res, next) => {
+  console.log(err.stack);
+  return res.status(500).json({
+    success: false,
+    message: "Something went wrong"
   });
 });
 
